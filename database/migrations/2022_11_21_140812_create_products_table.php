@@ -20,9 +20,12 @@ return new class extends Migration
             $table->string('code', 10);
             $table->string('name', 100);
             $table->text('description');
-            $table->string('photo', 50);
+            $table->string('photo', 50)->nullable();
             $table->string('slug', 100);
-            $table->decimal('price', 10)->unsigned()->comment('ID категории из таблицы categories');
+            $table->decimal('price', 10)->unsigned();
+            $table->index('name');
+            $table->index('price');
+            $table->fullText('description');
             $table->timestamps();
             $table->softDeletes();
         });

@@ -3,6 +3,10 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Category;
+use App\Models\Order;
+use App\Models\OrderProduct;
+use App\Models\Product;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -14,11 +18,38 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
+        // 10 продуктов одной категориии
+        Product::factory()
+            ->count(10)
+            ->for(Category::factory()->create())
+            ->create();
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        // 10 продуктов другой категориии
+        Product::factory()
+            ->count(10)
+            ->for(Category::factory()->create())
+            ->create();
+
+        // 10 продуктов третьей категориии
+        Product::factory()
+            ->count(10)
+            ->for(Category::factory()->create())
+            ->create();
+
+        // 1 заказ
+        $order = Order::factory()
+            ->create();
+
+        $products = Product::inRandomOrder()->take(3)->get();
+
+        // в заказе 3 продукта
+        foreach ($products as $product) {
+            OrderProduct::factory()
+                ->create([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                ]);
+        }
+
     }
 }

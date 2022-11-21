@@ -15,7 +15,14 @@ return new class extends Migration
     {
         Schema::create('orders_products_rel', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->bigInteger('product_id')->unsigned()->comment('ID товара из таблицы products');
+            $table->foreign('product_id')->references('id')->on('products');
+            $table->bigInteger('order_id')->unsigned()->comment('ID заказа из таблицы orders');
+            $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');
+            $table->decimal('price', 10)->unsigned();
+            $table->smallInteger('quantity')->unsigned();
+            $table->index('product_id');
+            $table->index('order_id');
         });
     }
 

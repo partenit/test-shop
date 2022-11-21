@@ -17,7 +17,9 @@ class OrderFactory extends Factory
     public function definition()
     {
         return [
-            //
+            'description' => $this->faker->text,
+            'status_id' => $this->faker->numberBetween(0, 4),
+            'summa' => $this->faker->randomFloat(2, 10, 1000),
         ];
     }
 }

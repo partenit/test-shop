@@ -15,7 +15,11 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
+            $table->text('description')->nullable();
+            $table->smallInteger('status_id')->unsigned()->comment('ID статуса (ожидает оплаты - 0, оплачен - 1, отправлен - 2, доставлен - 3, отменен - 4)');
+            $table->decimal('summa', 10)->unsigned();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
