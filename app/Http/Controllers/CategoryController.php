@@ -2,85 +2,65 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IndexCategoryRequest;
 use App\Models\Category;
-use App\Http\Requests\StoreCategoryRequest;
-use App\Http\Requests\UpdateCategoryRequest;
+use App\Traits\ValidateSlug;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
+/**
+ * @group Categories
+ *
+ * API для работы с категориями.
+ */
 class CategoryController extends Controller
 {
+    use ValidateSlug;
     /**
-     * Display a listing of the resource.
+     * получить список категорий
      *
-     * @return \Illuminate\Http\Response
+     * @param IndexCategoryRequest $request
+     * @return JsonResponse
+     *
+     * @queryParam page integer Номер страницы с результатами выдачи
+     * @queryParam sort string Поле для сортировки. По-умолчанию  'id|asc'
+     * @queryParam search string Строка, которая должна содержаться в результатах выдачи
+     * @queryParam per_page integer Количество возвращаемых записей на страницу.
      */
-    public function index()
+    public function index(IndexCategoryRequest $request)
     {
-        //
+        $products = (new Category())->getAll($request);
+
+        return response()->json($products);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * получить продукт по его slug
      *
-     * @return \Illuminate\Http\Response
+     * @param  string  $slug
+     * @return JsonResponse
      */
-    public function create()
+    public function show($slug)
     {
-        //
-    }
+        if (! $this->validateSlug($slug)) {
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \App\Http\Requests\StoreCategoryRequest  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(StoreCategoryRequest $request)
-    {
-        //
-    }
+            return response()->json([
+                'status'  => 'error',
+                'message' => __('http.incorrect slug format')
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Category  $category
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Category $category)
-    {
-        //
-    }
+        $page = Category::where('slug', $slug)
+            ->first();
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Category  $category
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Category $category)
-    {
-        //
-    }
+        if (! $page) {
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \App\Http\Requests\UpdateCategoryRequest  $request
-     * @param  \App\Models\Category  $category
-     * @return \Illuminate\Http\Response
-     */
-    public function update(UpdateCategoryRequest $request, Category $category)
-    {
-        //
-    }
+            return response()->json([
+                'status'  => 'error',
+                'message' => __('http.not_found')
+            ], Response::HTTP_NOT_FOUND);
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Category  $category
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Category $category)
-    {
-        //
+        return response()->json($page);
     }
 }

@@ -2,85 +2,62 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreateOrderRequest;
 use App\Models\Order;
-use App\Http\Requests\StoreOrderRequest;
-use App\Http\Requests\UpdateOrderRequest;
+use App\Models\OrderProduct;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
+/**
+ * @group Orders
+ *
+ * API для работы с заказами
+ */
 class OrderController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Create Categories
      *
-     * @return \Illuminate\Http\Response
+     * @authenticated
+     * @param CreateOrderRequest $request
+     *
+     * @return JsonResponse
+     * @bodyParam status_id integer Статус заказа (0-ожидает оплаты, 1-оплачен, 2-отправлен, 3-доставлен, 4-отменен)
+     * @bodyParam products array required Массив с продуктами
+     * @bodyParam description string Комментарий к заявке
      */
-    public function index()
+    public function create(CreateOrderRequest $request)
     {
-        //
-    }
+        $summa = 0;
+        $order = new Order();
+        $order->fill($request->only($order->getFillable()));
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
+        if ($request->status_id) {
+            $order->status_id = $request->status_id;
+        }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \App\Http\Requests\StoreOrderRequest  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(StoreOrderRequest $request)
-    {
-        //
-    }
+        $order->save();
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Order $order)
-    {
-        //
-    }
+        array_map(function ($product) use ($order, &$summa) {
+            $product['id'] = $product['id'] ?? null;
+            $product['quantity'] = $product['quantity'] ?? 0;
+            $product['price'] = $product['price'] ?? 0;
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Order $order)
-    {
-        //
-    }
+            if ($product['id'] && $product['quantity'] && $product['price']) {
+                OrderProduct::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product['id'],
+                    'quantity' => $product['quantity'],
+                    'price' => $product['price'],
+                ]);
+                $summa += $product['price'] * $product['quantity'];
+            }
+        }, $request->products);
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \App\Http\Requests\UpdateOrderRequest  $request
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
-     */
-    public function update(UpdateOrderRequest $request, Order $order)
-    {
-        //
-    }
+        $order->summa = $summa;
+        $order->save();
+        $order->load('orderProducts');
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Order $order)
-    {
-        //
+        return response()->json($order, Response::HTTP_CREATED);
     }
 }

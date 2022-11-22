@@ -2,85 +2,67 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IndexProductRequest;
 use App\Models\Product;
-use App\Http\Requests\StoreProductRequest;
-use App\Http\Requests\UpdateProductRequest;
+use App\Traits\ValidateSlug;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
+/**
+ * @group Products
+ *
+ * API для работы с продуктами.
+ */
 class ProductController extends Controller
 {
+    use ValidateSlug;
+
     /**
-     * Display a listing of the resource.
+     * получить список продуктов
      *
-     * @return \Illuminate\Http\Response
+     * @param IndexProductRequest $request
+     * @return JsonResponse
+     *
+     * @queryParam page integer Номер страницы с результатами выдачи
+     * @queryParam sort string Поле для сортировки. По-умолчанию  'id|asc'
+     * @queryParam search string Строка, которая должна содержаться в результатах выдачи
+     * @queryParam category_id integer ID категории
+     * @queryParam per_page integer Количество возвращаемых записей на страницу.
      */
-    public function index()
+    public function index(IndexProductRequest $request)
     {
-        //
+        $products = (new Product())->getAll($request);
+
+        return response()->json($products);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * получить продукт по его slug
      *
-     * @return \Illuminate\Http\Response
+     * @param  string  $slug
+     * @return JsonResponse
      */
-    public function create()
+    public function show($slug)
     {
-        //
-    }
+        if (! $this->validateSlug($slug)) {
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \App\Http\Requests\StoreProductRequest  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(StoreProductRequest $request)
-    {
-        //
-    }
+            return response()->json([
+                'status'  => 'error',
+                'message' => __('http.incorrect slug format')
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Product  $product
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Product $product)
-    {
-        //
-    }
+        $page = Product::where('slug', $slug)
+            ->first();
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Product  $product
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Product $product)
-    {
-        //
-    }
+        if (! $page) {
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \App\Http\Requests\UpdateProductRequest  $request
-     * @param  \App\Models\Product  $product
-     * @return \Illuminate\Http\Response
-     */
-    public function update(UpdateProductRequest $request, Product $product)
-    {
-        //
-    }
+            return response()->json([
+                'status'  => 'error',
+                'message' => __('http.not_found')
+            ], Response::HTTP_NOT_FOUND);
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Product  $product
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Product $product)
-    {
-        //
+        return response()->json($page);
     }
 }
