@@ -1,13 +1,7 @@
 ## Test Laravel Shop
 
-### Описание сущностей
-- Имеем три сущности: Products, Categories, Orders
-- один продукт принадлежит к одной категории
-- один продукт может быть в нескольких заказах
-- один заказ может содержать несколько продуктов
-
-### Схема базы данных
-![image](public/images/schema_db.png)
+### Демо
+[https://test-shop.estater.biz](https://test-shop.estater.biz).
 
 ### Инициализация
 1) git clone https://github.com/partenit/test-shop.git
@@ -23,3 +17,14 @@ php artisan test
 или
 
 vendor/bin/phpunit (лучше показывает прогресс)
+
+### Описание сущностей
+- Имеем три сущности: Products, Categories, Orders
+- один продукт принадлежит к одной категории
+- один продукт может быть в нескольких заказах
+- один заказ может содержать несколько продуктов
+
+### Схема базы данных
+![image](public/images/schema_db.png)
+
+
